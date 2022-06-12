@@ -31,10 +31,16 @@ public:
 
 	int Run(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow);
 
+	void DestroyWindowAddFunc(function<void()> p_func) {
+		_vecFunc.push_back(p_func);
+	}
+
 private:
 	wstring m_strTitle = L"Project";
 	HINSTANCE m_hInst;
 	HWND m_hWnd;
+
+	vector<function<void()>> _vecFunc;
 
 public:
 	static bool loop;

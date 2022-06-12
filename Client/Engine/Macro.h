@@ -8,28 +8,14 @@
 
 #define DECLARE_SINGLE(Type) 							\
 private:												\
-	inline static Type* m_pInstance = nullptr;			\
 	Type() {}											\
 	~Type() {}											\
 public:													\
 static Type* GetI()										\
 {														\
-	if (m_pInstance == nullptr) {						\
-		if(m_pInstance == nullptr) {					\
-			m_pInstance = new Type();					\
-		}												\
-	}													\
-	return m_pInstance;									\
+	static Type instance;								\
+	return &instance;									\
 }														\
-static void Delete()									\
-{														\
-	if (m_pInstance != nullptr) {						\
-		if(m_pInstance != nullptr) {					\
-			delete m_pInstance;							\
-		}												\
-	}													\
-	m_pInstance = nullptr;								\
-}
 
 
 #define GET_SINGLE(Type)		Type::GetI()

@@ -8,28 +8,53 @@
 
 #pragma comment(lib, "ws2_32.lib")
 
-#define SERVERIP "127.0.0.1"
-#define SERVERPORT 9000
+#define SERVERIP	"127.0.0.1"
+#define SERVERPORT	9001
 
 using namespace std;
 
 const int bufSize = 100;
 
-enum class PROTOCOL : __int32
+
+// Unordered_map을 이용해서 만들 예정
+enum class PROTOCOL
 {
-	EMPTY = -1,
-	INTRO = 1,
-	READ,
-	START,
-	INGAME,
-	GAMEEND,
-	SOCKETERROR,
+	NONE = -1,
+	C_CONNECT = 100,			// 클라가 접속하면 첫번째로 보내준다.
+	C_START,					// 게임을 시작합니다.
+	C_EXIT,						// 나갔습니다.
+
+	C_ROOM,
+	C_READ,
+
+	C_GAME_WAIT,
+
+	C_DIR,
+	C_BLOCK_DOWN,
+
+	// ----------------------------------------------
+
+	S_START = 200,					// 
+	S_ROOM,
+	S_GAME_WAIT,
+	S_GAME_START,					// 게임을 시작합니다.
+	S_GAME_BOARD_INFO,				// 보드의 정보를 전부 전달합니다.
+	S_GAME_BOARD_LINE_CLEAR,		// 보드 라인이 클리어되는 정보를 전달합니다.
+	S_GAME_FAILED,					// 게임에서 졌습니다.
+
+
+
+	EXIT = 300,						// 긴급탈출
+	END,
 };
 
-enum : __int32 {
-	ONE = 1,
-	TWO,
-	THREE
+enum : int
+{
+	DOWN = 10,
+	RIGHT,
+	LEFT,
+	SPACE,
+	CHANGE
 };
 
 void ErrorCode(const char* str);
@@ -67,8 +92,9 @@ int SendPacking(SOCKET socket, Args... info)
 	int packSize = Packing(&ptr, info...);
 
 	ptr = buf;
-	packSize += sizeof(int);
 	::memcpy(ptr, &packSize, sizeof(int));
+	packSize += sizeof(int);
+
 
 	return ::send(socket, buf, packSize, 0);
 }
@@ -87,6 +113,9 @@ void UnPacking(char** ptr, float* data, Args... args);
 
 template<typename... Args>
 void UnPacking(char** ptr, char* data, Args... args);
+
+template<typename ...Args>
+inline void UnPacking(char** ptr, char& data, Args ...args);
 
 
 // ------------------- 구현부 ---------------------------- //
@@ -112,6 +141,18 @@ inline int Packing(char** ptr, float data, Args ...args)
 	return Packing(ptr, args...) + sizeof(float);
 }
 
+template<typename ...Args>
+inline int Packing(char** ptr, char data, Args ...args)
+{
+	PackCpy(ptr, &data, sizeof(char));
+	return Packing(ptr, args...) + sizeof(char);
+}
+
+template<typename ...Args>
+inline int Packing(char** ptr, const char* data, Args ...args)
+{
+	return Packing(ptr, (char*)data, args...);
+}
 
 template<typename ...Args>
 inline int Packing(char** ptr, char* data, Args ...args)
@@ -146,6 +187,14 @@ template<typename ...Args>
 inline void UnPacking(char** ptr, float* data, Args ...args)
 {
 	UnPackCpy(data, ptr, sizeof(float));
+	UnPacking(ptr, args...);
+	return;
+}
+
+template<typename ...Args>
+inline void UnPacking(char** ptr, char& data, Args ...args)
+{
+	UnPackCpy(&data, ptr, sizeof(char));
 	UnPacking(ptr, args...);
 	return;
 }
@@ -186,6 +235,8 @@ inline int RecvPacking(SOCKET socket, char* buffer)
 
 	return 1;
 }
+
+
 
 #endif
 

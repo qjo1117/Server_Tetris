@@ -36,10 +36,6 @@ void Core::Update()
 {
     GET_SINGLE(Engine)->Update();
 
-    if (Input::GetI()->KeyDown("Right")) {
-        int32 a = 10;
-    }
-
     GET_SINGLE(Timer)->ShowFpsWindowTitle();
 }
 
@@ -51,7 +47,6 @@ void Core::Render()
 void Core::End()
 {
     GET_SINGLE(Engine)->End();
-    DEL_SINGLE(Engine);
 }
 
 int Core::Run(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
@@ -137,7 +132,9 @@ LRESULT CALLBACK Core::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
     switch (message) {
     case WM_DESTROY:
         Core::loop = false;
-        PostQuitMessage(0);
+        for (auto& func : GetI()->_vecFunc) {
+            func();
+        }
         break;
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);

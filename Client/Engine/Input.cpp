@@ -7,10 +7,11 @@ bool Input::Init(HWND hWnd)
 	m_hWnd = hWnd;
 
 	/* ------ Key Register ------ */
-	AddKey('W', "Forward");
-	AddKey('S', "Back");
-	AddKey('D', "Right");
-	AddKey('A', "Left");
+	AddKey(VK_DOWN, "Down");
+	AddKey(VK_RIGHT, "Right");
+	AddKey(VK_LEFT, "Left");
+	AddKey(VK_SPACE, "Space");
+	AddKey('C', "Change");
 
 	//EDITOR->AddEditor([]() { INPUT->__Editor__InputTool(); });
 
@@ -37,20 +38,25 @@ void Input::Update()
 		if (iPushCount == info->vecKeys.size()) {
 			if (info->bDown == false && info->bPress == false) {
 				info->bDown = true;
+				info->bPress = false;
+				info->bUp = false;
 			}
-			else if (info->bDown && info->bPress == false) {
+			else if (info->bDown == true) {
 				info->bPress = true;
 				info->bDown = false;
+				info->bUp = false;
 			}
 		}
 		else {
-			if (info->bDown == false || info->bPress == false) {
+			if (info->bDown == true || info->bPress == true) {
 				info->bUp = true;
 				info->bDown = false;
 				info->bPress = false;
 			}
 			else if (info->bUp) {
 				info->bUp = false;
+				info->bDown = false;
+				info->bPress = false;
 			}
 		}
 	}

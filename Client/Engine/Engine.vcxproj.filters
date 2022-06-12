@@ -28,6 +28,15 @@
     <Filter Include="Object\Group">
       <UniqueIdentifier>{7973c486-0a0f-4122-ae7f-b98fadaf6e0c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Third Party">
+      <UniqueIdentifier>{5ffb132b-a3c3-4572-ba06-76dd6f2b1be6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Third Party\IMGUI">
+      <UniqueIdentifier>{310d8aac-86c5-4932-a168-46c4427159af}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Third Party\FMOD">
+      <UniqueIdentifier>{62f64696-d432-4bce-b565-268ccc175c73}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h">
@@ -123,6 +132,33 @@
     <ClInclude Include="CoreGlobal.h">
       <Filter>Utils\Utils</Filter>
     </ClInclude>
+    <ClInclude Include="..\Library\Include\ImGui\imstb_textedit.h">
+      <Filter>Third Party\IMGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Library\Include\ImGui\imstb_truetype.h">
+      <Filter>Third Party\IMGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Library\Include\ImGui\imconfig.h">
+      <Filter>Third Party\IMGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Library\Include\ImGui\imgui.h">
+      <Filter>Third Party\IMGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Library\Include\ImGui\imgui_impl_dx9.h">
+      <Filter>Third Party\IMGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Library\Include\ImGui\imgui_impl_win32.h">
+      <Filter>Third Party\IMGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Library\Include\ImGui\imgui_internal.h">
+      <Filter>Third Party\IMGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Library\Include\ImGui\imstb_rectpack.h">
+      <Filter>Third Party\IMGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundManager.h">
+      <Filter>Engine\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">
@@ -196,6 +232,30 @@
     </ClCompile>
     <ClCompile Include="CoreGlobal.cpp">
       <Filter>Utils\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Library\Include\ImGui\imgui.cpp">
+      <Filter>Third Party\IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Library\Include\ImGui\imgui_demo.cpp">
+      <Filter>Third Party\IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Library\Include\ImGui\imgui_draw.cpp">
+      <Filter>Third Party\IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Library\Include\ImGui\imgui_impl_dx9.cpp">
+      <Filter>Third Party\IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Library\Include\ImGui\imgui_impl_win32.cpp">
+      <Filter>Third Party\IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Library\Include\ImGui\imgui_tables.cpp">
+      <Filter>Third Party\IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Library\Include\ImGui\imgui_widgets.cpp">
+      <Filter>Third Party\IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundManager.cpp">
+      <Filter>Engine\Core</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

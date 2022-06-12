@@ -21,6 +21,7 @@ void PathManager::Init()
 
 	assert(CreatePath(TEXTURE_PATH_KEY, L"Texture\\"));
 	assert(CreatePath(FBX_PATH_KEY, L"Fbx\\"));
+	assert(CreatePath(SOUND_PATH_KEY, L"Sound\\"));
 
 }
 

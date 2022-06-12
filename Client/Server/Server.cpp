@@ -1,59 +1,61 @@
-#pragma comment(lib, "ws2_32")
-#include <winsock2.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <memory>
-#include <vector>
+ï»¿
+#include "pch.h"
+#include "Board.h"
+#include "Room.h"
 
-#include "Packing.h"
 
-#define SERVERPORT 9001
-#define BUFSIZE    512
-
-// ¼ÒÄÏ Á¤º¸ ÀúÀåÀ» À§ÇÑ ±¸Á¶Ã¼
-struct SOCKETINFO
-{
-	OVERLAPPED overlapped;
-	SOCKET sock;
-	char buf[BUFSIZE+1];
-	int recvbytes;
-	int sendbytes;
-	WSABUF wsabuf;
-};
-
-// ÀÛ¾÷ÀÚ ½º·¹µå ÇÔ¼ö
+// ì‘ì—…ì ìŠ¤ë ˆë“œ í•¨ìˆ˜
 DWORD WINAPI WorkerThread(LPVOID arg);
-// ¿À·ù Ãâ·Â ÇÔ¼ö
-void err_quit(char *msg);
-void err_display(char *msg);
+// ì˜¤ë¥˜ ì¶œë ¥ í•¨ìˆ˜
+void err_quit(char* msg);
+void err_display(char* msg);
 
-int main(int argc, char *argv[])
+bool Recv(SocketInfo* _ptr);
+int CompleteRecv(SocketInfo* _ptr, int _completebyte);
+
+bool Send(SocketInfo* _ptr, int _size);
+int CompleteSend(SocketInfo* _ptr, int _completebyte);
+
+void CompleteRecvProcess(SocketInfo* _ptr);
+
+
+int SelectOrReadRoomProcess(SocketInfo* p_ptr, char* p_recvPtr);
+void BroadCastRoomStart(char* p_roomName);
+
+void DirProcess(SocketInfo* p_ptr, char* p_sendPtr);
+void BlockDownProcess(SocketInfo* p_ptr, char* p_recvPtr);
+
+
+// Main Server Cpp ì „ìš© í¬ë¦¬í‹°ì»¬ ì„¹ì…˜
+Lock GLock;
+
+int main(int argc, char* argv[])
 {
 	int retval;
 
-	// À©¼Ó ÃÊ±âÈ­
+	// ìœˆì† ì´ˆê¸°í™”
 	WSADATA wsa;
-	if(WSAStartup(MAKEWORD(2,2), &wsa) != 0) return 1;
+	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) return 1;
 
-	// ÀÔÃâ·Â ¿Ï·á Æ÷Æ® »ı¼º
+	// ì…ì¶œë ¥ ì™„ë£Œ í¬íŠ¸ ìƒì„±
 	HANDLE hcp = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
-	if(hcp == NULL) return 1;
+	if (hcp == NULL) return 1;
 
-	// CPU °³¼ö È®ÀÎ
+	// CPU ê°œìˆ˜ í™•ì¸
 	SYSTEM_INFO si;
 	GetSystemInfo(&si);
 
-	// (CPU °³¼ö * 2)°³ÀÇ ÀÛ¾÷ÀÚ ½º·¹µå »ı¼º
+	// (CPU ê°œìˆ˜ * 2)ê°œì˜ ì‘ì—…ì ìŠ¤ë ˆë“œ ìƒì„±
 	HANDLE hThread;
-	for(int i=0; i<(int)si.dwNumberOfProcessors*2; i++){
+	for (int i = 0; i < (int)si.dwNumberOfProcessors * 2; i++) {
 		hThread = CreateThread(NULL, 0, WorkerThread, hcp, 0, NULL);
-		if(hThread == NULL) return 1;
+		if (hThread == NULL) return 1;
 		CloseHandle(hThread);
 	}
 
 	// socket()
 	SOCKET listen_sock = socket(AF_INET, SOCK_STREAM, 0);
-	if(listen_sock == INVALID_SOCKET) err_quit("socket()");
+	if (listen_sock == INVALID_SOCKET) err_quit((char*)"socket()");
 
 	// bind()
 	SOCKADDR_IN serveraddr;
@@ -61,169 +63,464 @@ int main(int argc, char *argv[])
 	serveraddr.sin_family = AF_INET;
 	serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	serveraddr.sin_port = htons(SERVERPORT);
-	retval = bind(listen_sock, (SOCKADDR *)&serveraddr, sizeof(serveraddr));
-	if(retval == SOCKET_ERROR) err_quit("bind()");
-	
+	retval = bind(listen_sock, (SOCKADDR*)&serveraddr, sizeof(serveraddr));
+	if (retval == SOCKET_ERROR) err_quit((char*)"bind()");
+
 	// listen()
 	retval = listen(listen_sock, SOMAXCONN);
-	if(retval == SOCKET_ERROR) err_quit("listen()");
+	if (retval == SOCKET_ERROR) err_quit((char*)"listen()");
 
-	// µ¥ÀÌÅÍ Åë½Å¿¡ »ç¿ëÇÒ º¯¼ö
+	// ë°ì´í„° í†µì‹ ì— ì‚¬ìš©í•  ë³€ìˆ˜
 	SOCKET client_sock;
 	SOCKADDR_IN clientaddr;
 	int addrlen;
 	DWORD recvbytes, flags;
 
-	while(1){
+	RoomManager::GetI()->Init();
+
+	while (1) {
 		// accept()
 		addrlen = sizeof(clientaddr);
-		client_sock = accept(listen_sock, (SOCKADDR *)&clientaddr, &addrlen);
-		if(client_sock == INVALID_SOCKET){
-			err_display("accept()");
+		client_sock = accept(listen_sock, (SOCKADDR*)&clientaddr, &addrlen);
+		if (client_sock == INVALID_SOCKET) {
+			err_display((char*)"accept()");
 			break;
 		}
-		printf("[TCP ¼­¹ö] Å¬¶óÀÌ¾ğÆ® Á¢¼Ó: IP ÁÖ¼Ò=%s, Æ÷Æ® ¹øÈ£=%d\n", 
-			inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
 
-		// ¼ÒÄÏ°ú ÀÔÃâ·Â ¿Ï·á Æ÷Æ® ¿¬°á
-		CreateIoCompletionPort((HANDLE)client_sock, hcp, client_sock, 0);
 
-		// ¼ÒÄÏ Á¤º¸ ±¸Á¶Ã¼ ÇÒ´ç
-		SOCKETINFO *ptr = new SOCKETINFO;
-		if(ptr == NULL) break;
-		ZeroMemory(&ptr->overlapped, sizeof(ptr->overlapped));
-		ptr->sock = client_sock;
-		ptr->recvbytes = ptr->sendbytes = 0;
-		ptr->wsabuf.buf = ptr->buf;
-		ptr->wsabuf.len = BUFSIZE;
-
-		// ºñµ¿±â ÀÔÃâ·Â ½ÃÀÛ
-		flags = 0;
-		retval = WSARecv(client_sock, &ptr->wsabuf, 1, &recvbytes,
-			&flags, &ptr->overlapped, NULL);
-		if(retval == SOCKET_ERROR){
-			if(WSAGetLastError() != ERROR_IO_PENDING){
-				err_display("WSARecv()");
-			}
-			continue;
-		}
+		// ì†Œì¼“ê³¼ ì…ì¶œë ¥ ì™„ë£Œ í¬íŠ¸ ì—°ê²°
+		IocpEvent* aceepEvent = new IocpEvent;
+		ZeroMemory(aceepEvent, sizeof(OVERLAPPED));
+		aceepEvent->Init(EventType::Accept);
+		aceepEvent->owner = nullptr;
+		PostQueuedCompletionStatus(hcp, -1, client_sock, (LPOVERLAPPED)aceepEvent);
 	}
 
-	// À©¼Ó Á¾·á
+	// ìœˆì† ì¢…ë£Œ
 	WSACleanup();
 	return 0;
 }
 
-// ÀÛ¾÷ÀÚ ½º·¹µå ÇÔ¼ö
+// ì‘ì—…ì ìŠ¤ë ˆë“œ í•¨ìˆ˜
 DWORD WINAPI WorkerThread(LPVOID arg)
 {
 	int retval;
 	HANDLE hcp = (HANDLE)arg;
-	
-	while(1){
-		// ºñµ¿±â ÀÔÃâ·Â ¿Ï·á ±â´Ù¸®±â
+
+	while (1) {
+		// ë¹„ë™ê¸° ì…ì¶œë ¥ ì™„ë£Œ ê¸°ë‹¤ë¦¬ê¸°
 		DWORD cbTransferred;
 		SOCKET client_sock;
-		SOCKETINFO *ptr;
+		IocpEvent* iocpEvent = nullptr;
+		SocketInfo* user = nullptr;
 		retval = GetQueuedCompletionStatus(hcp, &cbTransferred,
-			(LPDWORD)&client_sock, (LPOVERLAPPED *)&ptr, INFINITE);
+			&client_sock, (LPOVERLAPPED*)&iocpEvent, INFINITE);
 
-		// Å¬¶óÀÌ¾ğÆ® Á¤º¸ ¾ò±â
-		SOCKADDR_IN clientaddr;
-		int addrlen = sizeof(clientaddr);
-		getpeername(ptr->sock, (SOCKADDR *)&clientaddr, &addrlen);
-		
-		// ºñµ¿±â ÀÔÃâ·Â °á°ú È®ÀÎ
-		if(retval == 0 || cbTransferred == 0){
-			if(retval == 0){
-				DWORD temp1, temp2;
-				WSAGetOverlappedResult(ptr->sock, &ptr->overlapped,
-					&temp1, FALSE, &temp2);
-				err_display("WSAGetOverlappedResult()");
-			}
-			closesocket(ptr->sock);
-			printf("[TCP ¼­¹ö] Å¬¶óÀÌ¾ğÆ® Á¾·á: IP ÁÖ¼Ò=%s, Æ÷Æ® ¹øÈ£=%d\n", 
-				inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
-			delete ptr;
-			continue;
-		}
+		user = iocpEvent->owner;
 
-		// µ¥ÀÌÅÍ Àü¼Û·® °»½Å
-		if(ptr->recvbytes == 0){
-			ptr->recvbytes = cbTransferred;
-			ptr->sendbytes = 0;
-			// ¹ŞÀº µ¥ÀÌÅÍ Ãâ·Â
-			ptr->buf[ptr->recvbytes] = '\0';
-			printf("[TCP/%s:%d] %s\n", inet_ntoa(clientaddr.sin_addr),
-				ntohs(clientaddr.sin_port), ptr->buf);
-		}
-		else{
-			ptr->sendbytes += cbTransferred;
-		}
-		
-		if(ptr->recvbytes > ptr->sendbytes){
-			// µ¥ÀÌÅÍ º¸³»±â
-			ZeroMemory(&ptr->overlapped, sizeof(ptr->overlapped));
-			ptr->wsabuf.buf = ptr->buf + ptr->sendbytes;
-			ptr->wsabuf.len = ptr->recvbytes - ptr->sendbytes;
-
-			DWORD sendbytes;
-			retval = WSASend(ptr->sock, &ptr->wsabuf, 1,
-				&sendbytes, 0, &ptr->overlapped, NULL);
-			if(retval == SOCKET_ERROR){
-				if(WSAGetLastError() != WSA_IO_PENDING){
-					err_display("WSASend()");
+		if ((user == nullptr && iocpEvent->type == EventType::Accept) == false) {
+			// í´ë¼ì´ì–¸íŠ¸ ì •ë³´ ì–»ê¸°
+			// ë¹„ë™ê¸° ì…ì¶œë ¥ ê²°ê³¼ í™•ì¸
+			if (retval == 0 || cbTransferred == 0) {
+ 				if (retval == 0) {
+					DWORD temp1, temp2;
+					WSAGetOverlappedResult(user->sock, (LPWSAOVERLAPPED)&iocpEvent,
+						&temp1, FALSE, &temp2);
+					err_display((char*)"WSAGetOverlappedResult()");
 				}
+
+				if (user) {
+					SOCKADDR_IN clientaddr;
+					int addrlen = sizeof(clientaddr);
+					getpeername(user->sock, (SOCKADDR*)&clientaddr, &addrlen);
+					printf("\n[TCP ì„œë²„] í´ë¼ì´ì–¸íŠ¸ ì¢…ë£Œ: IP ì£¼ì†Œ=%s, í¬íŠ¸ ë²ˆí˜¸=%d\n",
+						inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
+
+					closesocket(user->sock);
+
+					delete user;
+				}
+				user = nullptr;
+
 				continue;
-			}			
+			}
 		}
-		else{
+
+		int result = 0;
+		switch (iocpEvent->type) {
+		case EventType::Accept: {
+			DWORD recvbytes = 0, flags = 0;
+			CreateIoCompletionPort((HANDLE)client_sock, hcp, client_sock, 0);
+			// ì†Œì¼“ ì •ë³´ êµ¬ì¡°ì²´ í• ë‹¹
+			SocketInfo* ptr = new SocketInfo;
+			if (ptr == NULL) break;
+			ZeroMemory(&ptr->r_overlapped, sizeof(OVERLAPPED));
+			ptr->sock = client_sock;
 			ptr->recvbytes = 0;
+			ptr->sendbytes = 0;
+			ptr->r_wsabuf.buf = ptr->recvbuf;
+			ptr->r_wsabuf.len = ptr->recvbytes;
 
-			// µ¥ÀÌÅÍ ¹Ş±â
-			ZeroMemory(&ptr->overlapped, sizeof(ptr->overlapped));
-			ptr->wsabuf.buf = ptr->buf;
-			ptr->wsabuf.len = BUFSIZE;
+			ptr->board = new Board;
 
-			DWORD recvbytes;
-			DWORD flags = 0;
-			retval = WSARecv(ptr->sock, &ptr->wsabuf, 1, 
-				&recvbytes, &flags, &ptr->overlapped, NULL);
-			if(retval == SOCKET_ERROR){
-				if(WSAGetLastError() != WSA_IO_PENDING){
-					err_display("WSARecv()");
-				}
-				continue;
+			printf("[Computer] Connect: IP : %s, PORT : %d\n", inet_ntoa(ptr->addr.sin_addr), ntohs(ptr->addr.sin_port));
+
+			// ë¹„ë™ê¸° ì…ì¶œë ¥ ì‹œì‘
+			if (!Recv(ptr)) {
+				user->state = DISCONNECTED_STATE;
 			}
+
+			delete iocpEvent;
+		}
+			break;
+
+		case EventType::Recv:
+			result = CompleteRecv(user, cbTransferred);
+			switch (result) {
+			case SOC_ERROR:
+				printf("Recv Error");
+				return 0;
+			case SOC_FALSE:
+				continue;
+			case SOC_TRUE:
+				break;
+			}
+
+			CompleteRecvProcess(user);
+
+			if (!Recv(user)) {
+				user->state = DISCONNECTED_STATE;
+			}
+			break;
+
+		case EventType::Send:
+			result = CompleteSend(user, cbTransferred);
+			switch (result) {
+			case SOC_ERROR:
+				printf("Send Error");
+				return 0;
+			case SOC_FALSE:
+				continue;
+			case SOC_TRUE:
+				break;
+			}
+
+			break;
 		}
 	}
 
 	return 0;
 }
 
-// ¼ÒÄÏ ÇÔ¼ö ¿À·ù Ãâ·Â ÈÄ Á¾·á
-void err_quit(char *msg)
+// ì†Œì¼“ í•¨ìˆ˜ ì˜¤ë¥˜ ì¶œë ¥ í›„ ì¢…ë£Œ
+void err_quit(char* msg)
 {
 	LPVOID lpMsgBuf;
 	FormatMessage(
-		FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM,
+		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
 		NULL, WSAGetLastError(),
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 		(LPTSTR)&lpMsgBuf, 0, NULL);
-	MessageBox(NULL, (LPCTSTR)lpMsgBuf, msg, MB_ICONERROR);
+	MessageBox(NULL, (LPCTSTR)lpMsgBuf, (LPCWSTR)msg, MB_ICONERROR);
 	LocalFree(lpMsgBuf);
 	exit(1);
 }
 
-// ¼ÒÄÏ ÇÔ¼ö ¿À·ù Ãâ·Â
-void err_display(char *msg)
+// ì†Œì¼“ í•¨ìˆ˜ ì˜¤ë¥˜ ì¶œë ¥
+void err_display(char* msg)
 {
 	LPVOID lpMsgBuf;
 	FormatMessage(
-		FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM,
+		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
 		NULL, WSAGetLastError(),
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 		(LPTSTR)&lpMsgBuf, 0, NULL);
-	printf("[%s] %s", msg, (char *)lpMsgBuf);
+	printf("[%s] %s", msg, (char*)lpMsgBuf);
 	LocalFree(lpMsgBuf);
+}
+
+
+bool Recv(SocketInfo* _ptr)
+{
+	int retval;
+	DWORD recvbytes;
+	DWORD flags = 0;
+
+	ZeroMemory(&_ptr->r_overlapped, sizeof(OVERLAPPED));
+
+	_ptr->r_wsabuf.buf = _ptr->recvbuf + _ptr->comp_recvbytes;
+
+	if (_ptr->r_sizeflag) {
+		_ptr->r_wsabuf.len = _ptr->recvbytes - _ptr->comp_recvbytes;
+	}
+	else {
+		_ptr->recvbytes = sizeof(int) - _ptr->comp_recvbytes;
+		_ptr->r_wsabuf.len = _ptr->recvbytes;
+	}
+
+	retval = WSARecv(_ptr->sock, &_ptr->r_wsabuf, 1, &recvbytes,
+		&flags, &_ptr->r_overlapped, nullptr);
+	if (retval == SOCKET_ERROR) {
+		if (WSAGetLastError() != WSA_IO_PENDING) {
+			err_display((char*)"WSARecv()");
+			return false;
+		}
+	}
+
+	return true;
+}
+
+int CompleteRecv(SocketInfo* _ptr, int _completebyte)
+{
+	_ptr->comp_recvbytes += _completebyte;
+
+	if (_ptr->comp_recvbytes == _ptr->recvbytes) {
+		if (!_ptr->r_sizeflag) {
+			memcpy(&_ptr->recvbytes, _ptr->recvbuf, sizeof(int));
+			_ptr->comp_recvbytes = 0;
+			_ptr->r_sizeflag = true;
+
+			if (!Recv(_ptr))
+			{
+				return SOC_ERROR;
+			}
+
+			return SOC_FALSE;
+		}
+
+		_ptr->comp_recvbytes = 0;
+		_ptr->recvbytes = 0;
+		_ptr->r_sizeflag = false;
+
+		return SOC_TRUE;
+	}
+	else {
+		if (!Recv(_ptr)) {
+			return SOC_ERROR;
+		}
+
+		return SOC_FALSE;
+	}
+}
+
+bool Send(SocketInfo* _ptr, int _size)
+{
+	int retval;
+	DWORD sendbytes;
+	DWORD flags;
+
+	ZeroMemory((OVERLAPPED*)&_ptr->s_overlapped, sizeof(OVERLAPPED));
+	if (_ptr->sendbytes == 0) {
+		_ptr->sendbytes = _size;
+	}
+
+	_ptr->s_wsabuf.buf = _ptr->sendbuf + _ptr->comp_sendbytes;
+	_ptr->s_wsabuf.len = _ptr->sendbytes - _ptr->comp_sendbytes;
+
+	retval = WSASend(_ptr->sock, &_ptr->s_wsabuf, 1, &sendbytes,
+		0, &_ptr->s_overlapped, nullptr);
+	if (retval == SOCKET_ERROR) {
+		if (WSAGetLastError() != WSA_IO_PENDING) {
+			err_display((char*)"WSASend()");
+			//RemoveClientInfo(_ptr);
+			return false;
+		}
+	}
+
+	return true;
+}
+
+int CompleteSend(SocketInfo* _ptr, int _completebyte)
+{
+	_ptr->comp_sendbytes += _completebyte;
+	if (_ptr->comp_sendbytes == _ptr->sendbytes) {
+		_ptr->comp_sendbytes = 0;
+		_ptr->sendbytes = 0;
+
+		return SOC_TRUE;
+	}
+	if (!Send(_ptr, _ptr->sendbytes)) {
+		return SOC_ERROR;
+	}
+
+	return SOC_FALSE;
+}
+
+void CompleteRecvProcess(SocketInfo* _ptr)
+{
+	char msg[BUFSIZE] = { 0 };
+
+	PROTOCOL protocol = PROTOCOL::NONE;
+
+	char* recvPtr = _ptr->recvbuf;
+
+	ZeroMemory(_ptr->sendbuf, sizeof(_ptr->sendbuf));
+	char* sendPtr = _ptr->sendbuf + sizeof(int);
+	UnPacking(&recvPtr, &protocol);
+
+	int size = 0;
+
+	//size = Packing(&sendPtr, PROTOCOL::READ, );
+	//memcpy(_ptr->sendbuf, &size, sizeof(int));
+	//size += sizeof(int);
+
+	volatile static int count = 0;
+	count += 1;
+
+	switch (protocol) {
+	case PROTOCOL::C_CONNECT: 
+
+		break;
+
+	case PROTOCOL::C_ROOM:
+		size = RoomManager::GetI()->RoomList(_ptr->sendbuf);
+		break;
+
+	case PROTOCOL::C_START:
+		size = SelectOrReadRoomProcess(_ptr, recvPtr);
+		break;
+
+	case PROTOCOL::C_DIR:
+		DirProcess(_ptr, recvPtr);
+		break;
+
+	case PROTOCOL::C_BLOCK_DOWN:
+		BlockDownProcess(_ptr, recvPtr);
+		break;
+
+	case PROTOCOL::C_GAME_WAIT:
+		BroadCastRoomStart(const_cast<char*>(&_ptr->room->GetName()[0]));
+		break;
+
+	case PROTOCOL::EXIT:
+	case PROTOCOL::C_EXIT:
+		// TODO : ìœ ì €ê°€ ì¤‘ê°„ì— ë‚˜ê°”ì„ëŒ€ ë£¸ì— ìˆì„ ê²½ìš° ë£¸ì„ ë‚˜ê°€ìê³  í•˜ì.
+
+		size = Packing(&sendPtr, PROTOCOL::EXIT);
+		memcpy(_ptr->sendbuf, &size, sizeof(int));
+		size += sizeof(int);
+		_ptr->state = DISCONNECTED_STATE;
+		break;
+	}
+
+	// Size 0ì´ë©´ ì•„ë¬´ê²ƒë„ ë³´ë‚´ì§€ì•ŠëŠ”ë‹¤.
+	if (size == 0) {
+		return;
+	}
+
+	if (!Send(_ptr, size)) {
+		_ptr->state = DISCONNECTED_STATE;
+	}
+}
+
+int SelectOrReadRoomProcess(SocketInfo* p_ptr, char* p_recvPtr)
+{
+	char buffer[BUFSIZE] = { 0 };
+	UnPacking(&p_recvPtr, buffer);
+
+	int size = 0;
+	if (RoomManager::GetI()->AddUser(buffer, p_ptr) == true) {
+		// ë£¸ì— ìœ ì €ê°€ ì¶”ê°€ëœë‹¤
+		char* sendPtr = p_ptr->sendbuf + sizeof(int);
+		size = Packing(&sendPtr, PROTOCOL::S_GAME_WAIT);
+		::memcpy(p_ptr->sendbuf, &size, sizeof(int));
+		size += sizeof(int);
+	}
+	else {
+		// ë£¸ì— ìœ ì € ì¶”ê°€ê°€ ì•ˆëœë‹¤.
+		size = RoomManager::GetI()->RoomList(p_ptr->sendbuf);
+	}
+
+	return size;
+}
+
+void BroadCastRoomStart(char* p_roomName)
+{
+	Room* room = RoomManager::GetI()->FindRoom(p_roomName);
+	if (room->UserCount() != 2) {
+		return;
+	}
+
+	int size = 0;
+	for (SocketInfo* user : room->GetUser()) {
+		char* sendPtr = user->sendbuf + sizeof(int);
+		size = Packing(&sendPtr, PROTOCOL::S_START);
+		::memcpy(user->sendbuf, &size, sizeof(int));
+		size += sizeof(int);
+		if (!Send(user, size)) {
+			user->state = DISCONNECTED_STATE;
+		}
+	}
+}
+
+void DirProcess(SocketInfo* p_ptr, char* p_recvPtr)
+{
+	// ë°©í–¥ì„ ì–»ì–´ëƒ…ë‹ˆë‹¤.
+	int dir = 0;
+	UnPacking(&p_recvPtr, &dir);
+
+	// ê° í‚¤ì— ë§ê²Œ ì›€ì§ì…ë‹ˆë‹¤.
+	switch (dir) {
+	case RIGHT:
+		p_ptr->board->MovePos(1, 0);
+		break;
+
+	case LEFT:
+		p_ptr->board->MovePos(-1, 0);
+		break;
+
+	case DOWN:
+		p_ptr->board->MovePos(0, 1);
+		break;
+
+	case SPACE:
+		p_ptr->board->SpaceBar();
+		break;
+
+	case CHANGE:
+		p_ptr->board->ChangeBlock();
+		break;
+	}
+
+	// Send Packet
+	// TODO : 
+	int size = 0;
+
+	{
+		lock_guard<Lock> lockGuard(GLock);
+		size = p_ptr->board->SendPack(p_ptr, 0);
+		if (!Send(p_ptr, size)) {
+			p_ptr->state = DISCONNECTED_STATE;
+		}
+	
+		int otherId = (p_ptr->id + 1) % 2;
+		SocketInfo* other = p_ptr->room->GetUser()[otherId];
+		size = p_ptr->board->SendPack(other, 1);
+		if (!Send(other, size)) {
+			other->state = DISCONNECTED_STATE;
+		}
+	}
+	
+}
+
+
+void BlockDownProcess(SocketInfo* p_ptr, char* p_recvPtr)
+{
+	int size = 0;
+	p_ptr->board->MovePos(0, 1);
+
+	{
+		lock_guard<Lock> lockGuard(GLock);
+		size = p_ptr->board->SendPack(p_ptr, 0);
+		if (!Send(p_ptr, size)) {
+			p_ptr->state = DISCONNECTED_STATE;
+		}
+
+		int otherId = (p_ptr->id + 1) % 2;
+		SocketInfo* other = p_ptr->room->GetUser()[otherId];
+		size = p_ptr->board->SendPack(other, 1);
+		if (!Send(other, size)) {
+			other->state = DISCONNECTED_STATE;
+		}
+	}
 }

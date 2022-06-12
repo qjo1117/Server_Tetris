@@ -27,7 +27,13 @@ using Color = D3DXCOLOR;
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_impl_dx9.h"
 #include "ImGui/imgui_impl_win32.h"
-#pragma comment(lib, "Editor.lib")
+#endif
+
+#ifndef _FMOD_
+#define _FMOD_
+#include "Fmod/fmod.h"
+#include "Fmod/fmod.hpp"
+#pragma comment(lib, "Fmod/fmod_vc.lib")
 #endif
 
 #include "Utils.h"
@@ -42,5 +48,3 @@ using Color = D3DXCOLOR;
 #include "type.h"
 
 
-#define SERVERIP	"127.0.0.1"
-#define SERVERPORT	9001

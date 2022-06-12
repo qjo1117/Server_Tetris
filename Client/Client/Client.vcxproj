@@ -73,26 +73,26 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SolutionDir)Engine\;$(DXSDK_DIR)Include;$(SolutionDir)Library\Include\;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)Output\;$(DXSDK_DIR)Lib/x64;$(IncludePath);$(SolutionDir)Library\Lib\;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)Engine\;$(DXSDK_DIR)Include;$(SolutionDir)Library\Include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Output\;$(DXSDK_DIR)Lib/x64;$(IncludePath);$(SolutionDir)Library\Lib;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)Output\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)Engine\;$(DXSDK_DIR)Include;$(SolutionDir)Library\Include\;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)Output\;$(DXSDK_DIR)Lib/x64;$(IncludePath);$(SolutionDir)Library\Lib\;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)Engine\;$(DXSDK_DIR)Include;$(SolutionDir)Library\Include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Output\;$(DXSDK_DIR)Lib/x64;$(IncludePath);$(SolutionDir)Library\Lib;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)Output\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SolutionDir)Engine\;$(DXSDK_DIR)Include;$(SolutionDir)Library\Include\;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)Output\;$(DXSDK_DIR)Lib/x64;$(IncludePath);$(SolutionDir)Library\Lib\;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)Engine\;$(DXSDK_DIR)Include;$(SolutionDir)Library\Include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Output\;$(DXSDK_DIR)Lib/x64;$(IncludePath);$(SolutionDir)Library\Lib;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)Output\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)Engine\;$(DXSDK_DIR)Include;$(SolutionDir)Library\Include\;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)Output\;$(DXSDK_DIR)Lib/x64;$(IncludePath);$(SolutionDir)Library\Lib\;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)Engine\;$(DXSDK_DIR)Include;$(SolutionDir)Library\Include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Output\;$(DXSDK_DIR)Lib/x64;$(IncludePath);$(SolutionDir)Library\Lib;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)Output\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -165,41 +165,26 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\Library\Include\Packing.h" />
-    <ClInclude Include="ChessKing.h" />
-    <ClInclude Include="ChessKnight.h" />
-    <ClInclude Include="ChessQueen.h" />
     <ClInclude Include="ClientInfo.h" />
     <ClInclude Include="Core.h" />
     <ClInclude Include="framework.h" />
-    <ClInclude Include="MeshScene.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="Planet.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="ServerScene.h" />
-    <ClInclude Include="Spaceship.h" />
-    <ClInclude Include="StartScene.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="TexCube.h" />
-    <ClInclude Include="TextureScene.h" />
-    <ClInclude Include="Tiger.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Library\Include\Packing.cpp" />
-    <ClCompile Include="ChessKing.cpp" />
-    <ClCompile Include="ChessKnight.cpp" />
-    <ClCompile Include="ChessQueen.cpp" />
+    <ClCompile Include="..\Library\Include\Packing.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="ClientInfo.cpp" />
     <ClCompile Include="Core.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="MeshScene.cpp" />
     <ClCompile Include="pch.cpp" />
-    <ClCompile Include="Planet.cpp" />
     <ClCompile Include="ServerScene.cpp" />
-    <ClCompile Include="Spaceship.cpp" />
-    <ClCompile Include="StartScene.cpp" />
-    <ClCompile Include="TexCube.cpp" />
-    <ClCompile Include="TextureScene.cpp" />
-    <ClCompile Include="Tiger.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

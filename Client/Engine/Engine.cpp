@@ -5,6 +5,7 @@
 #include "DirectoryManager.h"
 #include "PluginManager.h"
 #include "PathManager.h"
+#include "SoundManager.h"
 
 
 int32 Engine::Init(HWND hWnd, HINSTANCE hInstance)
@@ -26,6 +27,7 @@ int32 Engine::Init(HWND hWnd, HINSTANCE hInstance)
 	GET_SINGLE(Input)->Init(hWnd);
 	GET_SINGLE(DirectoryManager)->Init();
 	GET_SINGLE(PathManager)->Init();
+	GET_SINGLE(SoundManager)->Init();
 #ifdef DEF_EDITOR
 	GET_SINGLE(EditorManager)->Init(hWnd);
 #endif
@@ -67,28 +69,13 @@ int32 Engine::Render()
 
 int32 Engine::End()
 {
+	GET_SINGLE(SoundManager)->End();
 	GET_SINGLE(Input)->End();
 	GET_SINGLE(DirectoryManager)->End();
 	GET_SINGLE(SceneManager)->End();
 	GET_SINGLE(ResourcesManager)->End();
 	GET_SINGLE(Device)->End();
 
-	/* ------------ DEL ------------ */
-
-#ifdef DEF_EDITOR
-	DEL_SINGLE(EditorManager);
-#endif
-	DEL_SINGLE(PluginManager);
-
-	DEL_SINGLE(DirectoryManager);
-
-	DEL_SINGLE(SceneManager);
-
-	DEL_SINGLE(ResourcesManager);
-	DEL_SINGLE(PathManager);
-	DEL_SINGLE(Input);
-	DEL_SINGLE(Timer);
-	DEL_SINGLE(Device);
 
 	return 0;
 }

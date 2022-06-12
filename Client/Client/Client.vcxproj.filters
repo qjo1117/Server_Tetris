@@ -10,36 +10,6 @@
     <ClCompile Include="pch.cpp">
       <Filter>Default</Filter>
     </ClCompile>
-    <ClCompile Include="StartScene.cpp">
-      <Filter>Content\SolarSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="Planet.cpp">
-      <Filter>Content\SolarSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="Spaceship.cpp">
-      <Filter>Content\SolarSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="TextureScene.cpp">
-      <Filter>Content\Texture</Filter>
-    </ClCompile>
-    <ClCompile Include="TexCube.cpp">
-      <Filter>Content\Texture</Filter>
-    </ClCompile>
-    <ClCompile Include="Tiger.cpp">
-      <Filter>Content\Mesh</Filter>
-    </ClCompile>
-    <ClCompile Include="MeshScene.cpp">
-      <Filter>Content\Mesh</Filter>
-    </ClCompile>
-    <ClCompile Include="ChessQueen.cpp">
-      <Filter>Content\Mesh</Filter>
-    </ClCompile>
-    <ClCompile Include="ChessKing.cpp">
-      <Filter>Content\Mesh</Filter>
-    </ClCompile>
-    <ClCompile Include="ChessKnight.cpp">
-      <Filter>Content\Mesh</Filter>
-    </ClCompile>
     <ClCompile Include="ServerScene.cpp">
       <Filter>Content\Server</Filter>
     </ClCompile>
@@ -66,36 +36,6 @@
     <ClInclude Include="targetver.h">
       <Filter>Default</Filter>
     </ClInclude>
-    <ClInclude Include="StartScene.h">
-      <Filter>Content\SolarSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Planet.h">
-      <Filter>Content\SolarSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Spaceship.h">
-      <Filter>Content\SolarSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="TextureScene.h">
-      <Filter>Content\Texture</Filter>
-    </ClInclude>
-    <ClInclude Include="TexCube.h">
-      <Filter>Content\Texture</Filter>
-    </ClInclude>
-    <ClInclude Include="Tiger.h">
-      <Filter>Content\Mesh</Filter>
-    </ClInclude>
-    <ClInclude Include="MeshScene.h">
-      <Filter>Content\Mesh</Filter>
-    </ClInclude>
-    <ClInclude Include="ChessQueen.h">
-      <Filter>Content\Mesh</Filter>
-    </ClInclude>
-    <ClInclude Include="ChessKing.h">
-      <Filter>Content\Mesh</Filter>
-    </ClInclude>
-    <ClInclude Include="ChessKnight.h">
-      <Filter>Content\Mesh</Filter>
-    </ClInclude>
     <ClInclude Include="ServerScene.h">
       <Filter>Content\Server</Filter>
     </ClInclude>
@@ -115,15 +55,6 @@
     </Filter>
     <Filter Include="Content">
       <UniqueIdentifier>{f9937e8e-1c4d-4f13-b300-770e4c86aec4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Content\SolarSystem">
-      <UniqueIdentifier>{90297511-dd14-48f8-b007-c98bfb3d42e5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Content\Texture">
-      <UniqueIdentifier>{b58cc947-d60e-4d77-87a9-d37764819297}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Content\Mesh">
-      <UniqueIdentifier>{82001750-5dd4-4b39-bd7d-82b3c742db42}</UniqueIdentifier>
     </Filter>
     <Filter Include="Content\Server">
       <UniqueIdentifier>{e03f7495-fd40-4d1e-a371-0b5a913dc3ff}</UniqueIdentifier>

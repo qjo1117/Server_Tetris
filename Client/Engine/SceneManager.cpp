@@ -41,4 +41,5 @@ void SceneManager::LoadScene(SCENE_TYPE p_eType)
 void SceneManager::End()
 {
 	m_pCurrentScene->End();
+	m_pCurrentScene = nullptr;
 }

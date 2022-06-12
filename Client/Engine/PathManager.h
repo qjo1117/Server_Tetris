@@ -4,6 +4,8 @@
 #define TEXTURE_PATH_KEY            "Texture"
 #define SCENE_PATH_KEY              "Scene"
 #define FBX_PATH_KEY				"FBX"
+#define SOUND_PATH_KEY				"Sound"
+
 
 
 class PathManager
