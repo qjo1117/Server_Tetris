@@ -1,5 +1,0 @@
-﻿  TCPServer.cpp
-D:\Cpp\Server_Tetris\TestTCPServer\TCPServer.cpp(79,4): warning C4996: 'inet_ntoa': Use inet_ntop() or InetNtop() instead or define _WINSOCK_DEPRECATED_NO_WARNINGS to disable deprecated API warnings
-D:\Cpp\Server_Tetris\TestTCPServer\TCPServer.cpp(94,31): warning C4996: 'inet_ntoa': Use inet_ntop() or InetNtop() instead or define _WINSOCK_DEPRECATED_NO_WARNINGS to disable deprecated API warnings
-D:\Cpp\Server_Tetris\TestTCPServer\TCPServer.cpp(108,4): warning C4996: 'inet_ntoa': Use inet_ntop() or InetNtop() instead or define _WINSOCK_DEPRECATED_NO_WARNINGS to disable deprecated API warnings
-  TCPServer.vcxproj -> D:\Cpp\Server_Tetris\TestTCPServer\Debug\TCPServer.exe

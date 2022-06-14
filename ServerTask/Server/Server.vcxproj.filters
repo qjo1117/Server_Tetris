@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Soruces">
+      <UniqueIdentifier>{34599550-82ee-44cf-a91a-9cc7bf2c2625}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameContent">
+      <UniqueIdentifier>{8582283a-ae26-4c1c-8b46-012d10fd5f63}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Server.cpp">
+      <Filter>Soruces</Filter>
+    </ClCompile>
+    <ClCompile Include="Board.cpp">
+      <Filter>GameContent</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="Room.cpp">
+      <Filter>GameContent</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Library\Include\Packing.cpp">
+      <Filter>Soruces</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Board.h">
+      <Filter>GameContent</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="Room.h">
+      <Filter>GameContent</Filter>
+    </ClInclude>
+    <ClInclude Include="BlockShape.h">
+      <Filter>GameContent</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Library\Include\Packing.h">
+      <Filter>Soruces</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
